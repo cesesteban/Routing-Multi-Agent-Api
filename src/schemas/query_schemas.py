@@ -5,6 +5,7 @@ from datetime import datetime
 class QueryRequest(BaseModel):
     query: str
     lang: str = "es"
+    to_email: str = ""
 
 class QueryResponse(BaseModel):
     id: int

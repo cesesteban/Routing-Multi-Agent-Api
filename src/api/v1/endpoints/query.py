@@ -18,7 +18,7 @@ def get_routing_service(db: AsyncSession = Depends(get_db)):
 @router.post("/query", response_model=DetailedQueryResponse)
 async def process_new_query(request: QueryRequest, service: RoutingService = Depends(get_routing_service)):
     """Inicia el flujo multi-agente para procesar una consulta."""
-    return await service.process_query(request.query, lang=request.lang)
+    return await service.process_query(request.query, lang=request.lang, to_email=request.to_email)
 
 @router.get("/history", response_model=List[QueryResponse])
 async def get_query_history(skip: int = 0, limit: int = 20, db: AsyncSession = Depends(get_db)):
