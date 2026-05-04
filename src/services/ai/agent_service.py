@@ -135,6 +135,21 @@ class MultiAgentSystem:
         self.critic_llm = self.powerful_llm.with_structured_output(CriticResponse)
         self.evaluator_llm = self.powerful_llm.with_structured_output(EvaluatorResponse)
 
+    def _get_langfuse_config(self, trace_id: Optional[str] = None) -> dict:
+        """Construye el config de callbacks de LangChain.
+        
+        Si se provee trace_id, crea un handler vinculado a esa traza raíz
+        para que todos los spans aparezcan anidados bajo el mismo trace en Langfuse.
+        Si no hay trace_id, usa el handler global (crea una traza nueva por invocación).
+        """
+        if not self.langfuse_handler:
+            return {}
+        if trace_id:
+            # Handler con trace_id explícito → span hijo de la traza raíz
+            return {"callbacks": [CallbackHandler(trace_id=trace_id)]}
+        # Handler global → genera su propia traza
+        return {"callbacks": [self.langfuse_handler]}
+
     def route_query(self, query: str, lang: str = "es", trace_id: Optional[str] = None) -> Dict[str, Any]:
         """Clasifica la intención del usuario utilizando el prompt del coordinador."""
         with open("prompts/router_prompt.md", "r", encoding="utf-8") as f:
@@ -145,9 +160,7 @@ class MultiAgentSystem:
         
         start_time = time.time()
         
-        # Configuración de callbacks
-        config = {"callbacks": [self.langfuse_handler]} if self.langfuse_handler else {}
-        
+        config = self._get_langfuse_config(trace_id)
         content = chain.invoke({"query": query, "language": "Spanish" if lang == "es" else "English"}, config=config)
         
         metrics = {
@@ -161,7 +174,7 @@ class MultiAgentSystem:
         
         return {"data": content, "metrics": metrics}
 
-    def handle_specialist(self, query: str, routing: RouterResponse, feedback: str = "", lang: str = "es") -> Dict[str, Any]:
+    def handle_specialist(self, query: str, routing: RouterResponse, feedback: str = "", lang: str = "es", trace_id: Optional[str] = None) -> Dict[str, Any]:
         """Deriva la consulta al especialista adecuado según la intención detectada."""
         config_role = AGENT_ROLES.get(routing.intent, AGENT_ROLES["GENERAL"])
         
@@ -178,7 +191,7 @@ class MultiAgentSystem:
         chain = prompt | self.specialist_llm
         
         start_time = time.time()
-        llm_config = {"callbacks": [self.langfuse_handler]} if self.langfuse_handler else {}
+        llm_config = self._get_langfuse_config(trace_id)
         
         content = chain.invoke({
             "role_description": config_role["role"],
@@ -202,7 +215,7 @@ class MultiAgentSystem:
         
         return {"data": content, "metrics": metrics, "context_used": context}
 
-    def audit_and_refine(self, query: str, specialist_data: SpecialistResponse, lang: str = "es") -> Dict[str, Any]:
+    def audit_and_refine(self, query: str, specialist_data: SpecialistResponse, lang: str = "es", trace_id: Optional[str] = None) -> Dict[str, Any]:
         """Realiza una auditoría técnica y refina la respuesta si es necesario (Feedback Loop)."""
         with open("prompts/critic_prompt.md", "r", encoding="utf-8") as f:
             template_text = f.read()
@@ -211,7 +224,7 @@ class MultiAgentSystem:
         chain = prompt | self.critic_llm
         
         start_time = time.time()
-        llm_config = {"callbacks": [self.langfuse_handler]} if self.langfuse_handler else {}
+        llm_config = self._get_langfuse_config(trace_id)
         
         audit_result = chain.invoke({
             "query": query,
@@ -231,7 +244,7 @@ class MultiAgentSystem:
         
         return {"data": audit_result, "metrics": metrics}
 
-    def evaluate_response(self, query: str, response_text: str, lang: str = "es") -> Dict[str, Any]:
+    def evaluate_response(self, query: str, response_text: str, lang: str = "es", trace_id: Optional[str] = None) -> Dict[str, Any]:
         """Agente Evaluador que asigna puntaje y lo envía a Langfuse."""
         with open("prompts/evaluator_prompt.md", "r", encoding="utf-8") as f:
             template_text = f.read()
@@ -240,7 +253,7 @@ class MultiAgentSystem:
         chain = prompt | self.evaluator_llm
         
         start_time = time.time()
-        llm_config = {"callbacks": [self.langfuse_handler]} if self.langfuse_handler else {}
+        llm_config = self._get_langfuse_config(trace_id)
         
         eval_result = chain.invoke({
             "query": query,
@@ -248,16 +261,21 @@ class MultiAgentSystem:
             "language": "Spanish" if lang == "es" else "English"
         }, config=llm_config)
         
-        # Registrar puntaje en Langfuse si está disponible
-        if self.langfuse_client:
+        # Registrar puntaje en Langfuse vinculado a la traza raíz
+        if self.langfuse_client and trace_id:
             try:
                 self.langfuse_client.score(
+                    trace_id=trace_id,               # ← vinculado a la traza correcta
                     name="rag_quality",
                     value=eval_result.final_score,
+                    data_type="NUMERIC",
                     comment=eval_result.justification
                 )
+                print(f"  [Langfuse] Score {eval_result.final_score:.2f} vinculado a trace_id={trace_id}")
             except Exception as e:
                 print(f"  [Error Langfuse Score] {e}")
+        elif self.langfuse_client and not trace_id:
+            print("  [Langfuse] Score NO enviado: trace_id no disponible.")
         
         metrics = {
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),

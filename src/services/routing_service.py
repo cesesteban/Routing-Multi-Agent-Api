@@ -25,6 +25,20 @@ class RoutingService:
         ctx = self.context_eng.build_context_packet(query)
         clean_query = ctx["clean_query"]
 
+        # Crear traza raíz en Langfuse para toda la ejecución
+        trace_id = None
+        if self.system.langfuse_client:
+            try:
+                trace = self.system.langfuse_client.trace(
+                    name="process_query",
+                    input={"query": clean_query, "lang": lang},
+                    metadata={"context_hash": ctx["context_hash"]}
+                )
+                trace_id = trace.id
+                print(f"  [Langfuse] Traza raíz creada: trace_id={trace_id}")
+            except Exception as e:
+                print(f"  [Langfuse] No se pudo crear la traza: {e}")
+
         # Seguridad L1 y L2
         is_unsafe, reason = self.safety.is_adversarial(clean_query)
         if not is_unsafe:
@@ -46,7 +60,7 @@ class RoutingService:
             return await self.query_repo.create(record_data)
 
         # 2. Orquestación Multi-Agente
-        routing_result = self.system.route_query(clean_query, lang=lang)
+        routing_result = self.system.route_query(clean_query, lang=lang, trace_id=trace_id)
         intent_data = routing_result["data"]
 
         # 3. Ciclo Especialista - Auditor
@@ -59,11 +73,15 @@ class RoutingService:
 
         while attempts < max_attempts:
             attempts += 1
-            specialist_result = self.system.handle_specialist(clean_query, intent_data, feedback=feedback, lang=lang)
+            specialist_result = self.system.handle_specialist(
+                clean_query, intent_data, feedback=feedback, lang=lang, trace_id=trace_id
+            )
             final_data = specialist_result["data"]
             context_used = specialist_result.get("context_used", "")
 
-            audit_result = self.system.audit_and_refine(clean_query, final_data, lang=lang)
+            audit_result = self.system.audit_and_refine(
+                clean_query, final_data, lang=lang, trace_id=trace_id
+            )
             critic_data = audit_result["data"]
             audit_history.append(critic_data.model_dump())
 
@@ -73,7 +91,9 @@ class RoutingService:
                 feedback = f"Issues detectados: {', '.join(critic_data.issues)}. Sugerencia: {critic_data.suggestions}"
 
         # 4. Agente Evaluador RAG
-        eval_result = self.system.evaluate_response(clean_query, final_data.response_text, lang=lang)
+        eval_result = self.system.evaluate_response(
+            clean_query, final_data.response_text, lang=lang, trace_id=trace_id
+        )
         evaluation = eval_result["data"]
 
         # 5. Cálculo de Métricas
@@ -120,5 +140,20 @@ class RoutingService:
                 print(f"  {r}")
         except Exception as e:
             print(f"  [ToolExecutor ERROR] Tools fallaron silenciosamente: {e}")
+
+        # Actualizar traza raíz con el output final
+        if self.system.langfuse_client and trace_id:
+            try:
+                self.system.langfuse_client.trace(
+                    id=trace_id,
+                    output={
+                        "intent": intent_data.intent,
+                        "priority": final_data.priority,
+                        "evaluation_score": evaluation.final_score,
+                        "attempts": attempts,
+                    }
+                )
+            except Exception:
+                pass
 
         return await self.query_repo.create(record_data)
