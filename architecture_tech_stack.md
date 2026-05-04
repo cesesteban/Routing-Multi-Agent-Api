@@ -43,7 +43,17 @@ Si falla, genera instrucciones de mejora y obliga al especialista a regenerar la
 
 ## 3. Implementación de RAG (Retrieval-Augmented Generation)
 
-El sistema utiliza un `RAGManager` que segmenta el conocimiento por departamentos. Al detectar un departamento específico, recupera los fragmentos más relevantes de la base de datos vectorial para enriquecer el prompt del especialista, asegurando respuestas basadas en hechos y no solo en el conocimiento pre-entrenado del modelo.
+El sistema utiliza un `RAGManager` que segmenta el conocimiento por departamentos. Utiliza **Búsqueda Híbrida** para maximizar la relevancia:
+- **Búsqueda Densa (Semántica)**: Vía ChromaDB para entender el contexto y significado.
+- **Búsqueda Léxica (Palabras Clave)**: Vía BM25 para coincidencia exacta de términos técnicos y nombres.
+- **Ensemble**: Combina ambos resultados con pesos balanceados (50/50).
+
+**Formatos Soportados**:
+- Markdown (`.md`)
+- Texto Plano (`.txt`)
+- PDF (`.pdf`) mediante `PyPDFLoader`.
+
+Este enfoque asegura respuestas basadas en hechos y minimiza alucinaciones al recuperar información precisa de documentos técnicos.
 
 ## 4. Observabilidad y Métricas
 
@@ -52,10 +62,3 @@ Cada ejecución genera un payload enriquecido para desarrolladores:
 - **Consumo**: Tokens totales acumulados en todas las iteraciones.
 - **Trazabilidad**: ID de traza de Langfuse para depuración profunda.
 - **Audit Trace**: Historial de qué fue rechazado y por qué durante el proceso de refinamiento.
-
----
-
-## 5. Próximas Mejoras
-- **Soporte Multi-idioma (i18n)**: Capacidad de responder en el idioma solicitado por el cliente.
-- **Soporte para Vertex AI**: Integración con modelos de Google Cloud de nivel empresarial.
-- **Mejora de Granularidad de Seguridad**: Capas de seguridad específicas por departamento.

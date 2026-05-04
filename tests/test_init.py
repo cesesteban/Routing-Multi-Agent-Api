@@ -1,5 +1,12 @@
-from agents import MultiAgentSystem
-from config import Config
+import sys
+import os
+import pytest
+
+# Añadir src al path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
+from src.services.ai.agent_service import MultiAgentSystem
+from src.core.config import Config
 
 def test_initialization():
     print(f"Testing initialization with PROVIDER={Config.LLM_PROVIDER}...")

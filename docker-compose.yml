@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  agent-routing-api:
+  multi-agent-routing-api:
     build: .
-    container_name: agent_routing_api
+    container_name: multi_agent_routing_api
     ports:
       - "8000:8000"
     volumes:
