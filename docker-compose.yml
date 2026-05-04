@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  agent-routing-api:
+    build: .
+    container_name: agent_routing_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - persistent_data:/app/persistent
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER:-lm_studio}
+      - MODEL_NAME=${MODEL_NAME:-local-model}
+      - MODEL_NANO=${MODEL_NANO:-gemma-3-1b}
+      - MODEL_POWERFUL=${MODEL_POWERFUL:-gemma-3-4b}
+      - LM_STUDIO_BASE_URL=${LM_STUDIO_BASE_URL:-http://host.docker.internal:1234/v1}
+      - LM_STUDIO_NANO_URL=${LM_STUDIO_NANO_URL:-http://host.docker.internal:1234/v1}
+      - LM_STUDIO_POWERFUL_URL=${LM_STUDIO_POWERFUL_URL:-http://host.docker.internal:1234/v1}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-https://cloud.langfuse.com}
+      - DATABASE_URL=sqlite+aiosqlite:////app/persistent/multi_agent_system.db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+
+volumes:
+  persistent_data:

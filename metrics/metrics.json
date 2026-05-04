@@ -1,0 +1,199 @@
+[
+    {
+        "timestamp": "2026-03-29T03:03:34Z",
+        "tokens_prompt": 1131,
+        "tokens_completion": 370,
+        "total_tokens": 1501,
+        "latency_ms": 6990.19,
+        "estimated_cost_usd": 0.0112
+    },
+    {
+        "timestamp": "2026-03-29T03:05:18Z",
+        "tokens_prompt": 1132,
+        "tokens_completion": 290,
+        "total_tokens": 1422,
+        "latency_ms": 5857.31,
+        "estimated_cost_usd": 0.01001
+    },
+    {
+        "timestamp": "2026-03-29T03:15:57Z",
+        "tokens_prompt": 1142,
+        "tokens_completion": 304,
+        "total_tokens": 1446,
+        "latency_ms": 6348.6,
+        "estimated_cost_usd": 0.01027
+    },
+    {
+        "timestamp": "2026-03-29T03:17:18Z",
+        "tokens_prompt": 1056,
+        "tokens_completion": 150,
+        "total_tokens": 1206,
+        "latency_ms": 4562.97,
+        "estimated_cost_usd": 0.00753
+    },
+    {
+        "timestamp": "2026-03-29T03:36:01Z",
+        "tokens_prompt": 1142,
+        "tokens_completion": 293,
+        "total_tokens": 1435,
+        "latency_ms": 6104.47,
+        "estimated_cost_usd": 0.0101
+    },
+    {
+        "timestamp": "2026-03-29T03:37:05Z",
+        "tokens_prompt": 1123,
+        "tokens_completion": 365,
+        "total_tokens": 1488,
+        "latency_ms": 7063.78,
+        "estimated_cost_usd": 0.01109
+    },
+    {
+        "timestamp": "2026-03-29T03:38:13Z",
+        "tokens_prompt": 1132,
+        "tokens_completion": 391,
+        "total_tokens": 1523,
+        "latency_ms": 8049.65,
+        "estimated_cost_usd": 0.01153
+    },
+    {
+        "timestamp": "2026-03-29T03:41:42Z",
+        "tokens_prompt": 0,
+        "tokens_completion": 0,
+        "total_tokens": 0,
+        "latency_ms": 0,
+        "estimated_cost_usd": 0.0
+    },
+    {
+        "timestamp": "2026-03-29T03:42:18Z",
+        "tokens_prompt": 0,
+        "tokens_completion": 0,
+        "total_tokens": 0,
+        "latency_ms": 0,
+        "estimated_cost_usd": 0.0
+    },
+    {
+        "timestamp": "2026-03-29T03:43:00Z",
+        "tokens_prompt": 1087,
+        "tokens_completion": 182,
+        "total_tokens": 1269,
+        "latency_ms": 4860.1,
+        "estimated_cost_usd": 0.00817
+    },
+    {
+        "timestamp": "2026-03-29T04:36:01Z",
+        "total_tokens": 178,
+        "latency_ms": 11062.0,
+        "estimated_cost_usd": 0.003
+    },
+    {
+        "timestamp": "2026-03-29T04:39:36Z",
+        "total_tokens": 212,
+        "latency_ms": 11466.02,
+        "estimated_cost_usd": 0.003
+    },
+    {
+        "timestamp": "2026-03-29T04:46:31Z",
+        "total_tokens": 260,
+        "latency_ms": 10375.14,
+        "estimated_cost_usd": 0.003
+    },
+    {
+        "timestamp": "2026-03-29T04:47:55Z",
+        "total_tokens": 230,
+        "latency_ms": 11401.46,
+        "estimated_cost_usd": 0.003
+    },
+    {
+        "timestamp": "2026-03-29T04:48:16Z",
+        "total_tokens": 248,
+        "latency_ms": 11560.48,
+        "estimated_cost_usd": 0.003
+    },
+    {
+        "timestamp": "2026-03-29T04:48:44Z",
+        "total_tokens": 262,
+        "latency_ms": 8782.14,
+        "estimated_cost_usd": 0.003
+    },
+    {
+        "timestamp": "2026-03-29T04:49:03Z",
+        "total_tokens": 240,
+        "latency_ms": 9693.75,
+        "estimated_cost_usd": 0.003
+    },
+    {
+        "timestamp": "2026-03-29T05:08:57Z",
+        "total_tokens": 490,
+        "latency_ms": 16848.97,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:11:04Z",
+        "total_tokens": 532,
+        "latency_ms": 23078.5,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:11:52Z",
+        "total_tokens": 536,
+        "latency_ms": 20936.81,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:12:30Z",
+        "total_tokens": 534,
+        "latency_ms": 21458.9,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:13:05Z",
+        "total_tokens": 504,
+        "latency_ms": 23266.04,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:14:43Z",
+        "total_tokens": 514,
+        "latency_ms": 22611.25,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:38:41Z",
+        "total_tokens": 498,
+        "latency_ms": 21974.62,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:44:09Z",
+        "total_tokens": 544,
+        "latency_ms": 19949.14,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "timestamp": "2026-03-29T05:51:22Z",
+        "total_tokens": 1388,
+        "latency_ms": 58115.69,
+        "estimated_cost_usd": 0.0085
+    },
+    {
+        "timestamp": "2026-03-30T20:58:04Z",
+        "total_tokens": 1216,
+        "latency_ms": 102535.79,
+        "estimated_cost_usd": 0.0085
+    },
+    {
+        "timestamp": "2026-03-30T21:04:01Z",
+        "total_tokens": 1220,
+        "latency_ms": 99900.49,
+        "estimated_cost_usd": 0.0085
+    },
+    {
+        "timestamp": "2026-03-30T21:14:17Z",
+        "total_tokens": 460,
+        "latency_ms": 19665.44,
+        "estimated_cost_usd": 0.0035
+    },
+    {
+        "metric": 1
+    }
+]
