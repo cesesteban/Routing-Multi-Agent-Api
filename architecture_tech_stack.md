@@ -1,4 +1,4 @@
-# Arquitectura y Stack Tecnológico — Multi-Agent Routing System (01-PI)
+# Arquitectura y Stack Tecnológico — Multi-Agent Routing System (03-PI)
 
 Este documento describe la arquitectura técnica completa y las tecnologías utilizadas en el sistema de ruteo multi-agente, incluyendo las últimas incorporaciones: **Hybrid RAG con RRF**, **sistema de Tools deterministas** y **suite de tests E2E**.
 

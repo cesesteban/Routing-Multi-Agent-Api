@@ -1,4 +1,4 @@
-# Multi-Agent RAG System Architecture Report (01-PI)
+# Multi-Agent RAG System Architecture Report (03-PI)
 
 ## 1. Vision of Architecture
 The system uses a **Retrieval-Augmented Routing with Autonomous Evaluation & Tracing Architecture**, designed to maximize precision through granular reasoning, external knowledge retrieval, and automated quality scoring.
@@ -38,4 +38,4 @@ To facilitate development and monitoring, the system generates an output that in
 -   **Full Transparency**: Developers have access to the exact internal reasoning and the refinement history.
 
 ## 5. Conclusion
-01-PI evolves from a simple router to a sophisticated multi-agent system that balances technical expertise with centralized and iterative quality control, similar to high-performance production architectures.
+03-PI evolves from a simple router to a sophisticated multi-agent system that balances technical expertise with centralized and iterative quality control, similar to high-performance production architectures.

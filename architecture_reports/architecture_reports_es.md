@@ -1,4 +1,4 @@
-# Reporte de Arquitectura del Sistema RAG Multi-Agente (01-PI)
+# Reporte de Arquitectura del Sistema RAG Multi-Agente (03-PI)
 
 ## 1. Visión de la Arquitectura
 El sistema utiliza una **Arquitectura de Ruteo Aumentada con Recuperación (RAG), Evaluación Autónoma y Trazabilidad**, diseñada para maximizar la precisión mediante el razonamiento granular, la recuperación de conocimiento externo y la calificación automática de calidad.
@@ -38,4 +38,4 @@ Para facilitar el desarrollo y la supervisión, el sistema genera un output que 
 -   **Transparencia Total**: Los desarrolladores tienen acceso al razonamiento interno exacto y al historial de refinamiento.
 
 ## 5. Conclusión
-01-PI evoluciona de un ruteador simple a un sistema de agentes sofisticado que equilibra la especialización técnica con un control de calidad centralizado e iterativo, similar a arquitecturas de producción de alto rendimiento.
+03-PI evoluciona de un ruteador simple a un sistema de agentes sofisticado que equilibra la especialización técnica con un control de calidad centralizado e iterativo, similar a arquitecturas de producción de alto rendimiento.

@@ -1,4 +1,4 @@
-# Decisiones Técnicas — Multi-Agent Routing System (01-PI)
+# Decisiones Técnicas — Multi-Agent Routing System (03-PI)
 
 Este documento registra las decisiones de diseño arquitectónico tomadas durante el desarrollo del sistema, explicando el razonamiento detrás de cada elección. Sigue un formato inspirado en **Architecture Decision Records (ADR)**: contexto, opciones evaluadas, decisión y consecuencias.
 
