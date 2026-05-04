@@ -18,3 +18,5 @@ aiosqlite
 langchain-google-vertexai
 rank_bm25
 pypdf
+httpx
+langchain-text-splitters

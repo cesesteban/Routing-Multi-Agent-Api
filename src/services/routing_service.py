@@ -116,11 +116,8 @@ class RoutingService:
                 "attendee_email": to_email,
             }
             tool_results = self.tool_executor.run(tool_payload)
-            # Añadir resumen de tools al record (sin bloquear si falla)
-            record_data["tools_executed"] = [
-                {"tool": r.tool_name, "success": r.success, "message": r.message}
-                for r in tool_results
-            ]
+            for r in tool_results:
+                print(f"  {r}")
         except Exception as e:
             print(f"  [ToolExecutor ERROR] Tools fallaron silenciosamente: {e}")
 
