@@ -22,40 +22,16 @@ class EmailTool(BaseTool):
         self.email_from = os.getenv("EMAIL_FROM", "soporte@empresa.com")
 
     def _build_html(self, payload: Dict[str, Any]) -> str:
-        department = payload.get("department", "Soporte")
-        query = payload.get("query", "")
         response_text = payload.get("response_text", "")
-        next_steps = payload.get("next_steps", [])
-        priority = payload.get("priority", "MEDIA")
-
-        steps_html = "".join(f"<li>{step}</li>" for step in next_steps)
-        priority_color = {
-            "BAJA": "#28a745",
-            "MEDIA": "#ffc107",
-            "ALTA": "#fd7e14",
-            "CRÍTICA": "#dc3545"
-        }.get(priority, "#6c757d")
 
         return f"""
         <html><body style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-            <div style="background: #1a1a2e; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-                <h2 style="margin: 0;">🤖 Multi-Agent Support System</h2>
-                <p style="margin: 5px 0; opacity: 0.8;">Departamento: {department}</p>
+            <div style="padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <p style="white-space: pre-wrap;">{response_text}</p>
             </div>
-            <div style="border: 1px solid #ddd; padding: 20px; border-radius: 0 0 8px 8px;">
-                <p><strong>Consulta:</strong> {query}</p>
-                <hr>
-                <h3>Respuesta del especialista:</h3>
-                <p>{response_text}</p>
-                <h3>Próximos pasos:</h3>
-                <ul>{steps_html}</ul>
-                <p>
-                    <span style="background: {priority_color}; color: white;
-                    padding: 4px 12px; border-radius: 20px; font-size: 12px;">
-                        Prioridad: {priority}
-                    </span>
-                </p>
-            </div>
+            <footer style="margin-top: 20px; font-size: 12px; color: #888;">
+                <p>Este es un mensaje automático del Sistema de Soporte IA.</p>
+            </footer>
         </body></html>
         """
 
@@ -75,7 +51,7 @@ class EmailTool(BaseTool):
             return ToolResult(
                 tool_name=self.name,
                 success=True,
-                message=f"Email would be sent to '{to_email or 'user@example.com'}' with {len(payload.get('next_steps', []))} next steps.",
+                message=f"Email would be sent to '{to_email or 'user@example.com'}' containing the specialist response text.",
                 data={"to": to_email, "subject": f"[{payload.get('department', 'Soporte')}] Respuesta a su consulta"},
                 dry_run=True
             )
