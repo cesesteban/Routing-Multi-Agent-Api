@@ -2,8 +2,8 @@ import json
 import time
 import os
 from enum import Enum
-from typing import Dict, Any, List, Optional
-from pydantic import BaseModel, Field
+from typing import Dict, Any, List, Optional, Union
+from pydantic import BaseModel, Field, field_validator
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
@@ -44,17 +44,31 @@ class SpecialistResponse(BaseModel):
     response_text: str = Field(description="Respuesta directa al usuario")
     next_steps: List[str] = Field(description="Tareas o seguimiento recomendado")
     priority: str = Field(description="Nivel de urgencia detectado (BAJA, MEDIA, ALTA, CRÍTICA)")
-    requires_supervisor: bool = Field(description="Define si el caso debe ser escalado a un humano de inmediato")
+    requires_supervisor: Union[bool, str] = Field(description="Define si el caso debe ser escalado a un humano (true o false)")
     avoid: List[str] = Field(description="Lo que se decidió NO decir o evitar en esta respuesta")
     tone_notes: List[str] = Field(description="Notas sobre el tono aplicado (ej. empático, formal)")
     why_it_works: List[str] = Field(description="Justificación técnica de por qué esta respuesta es efectiva para el usuario")
 
+    @field_validator("requires_supervisor", mode="before")
+    @classmethod
+    def coerce_bool(cls, v):
+        if isinstance(v, str):
+            return v.lower() in ("true", "1", "yes", "t")
+        return bool(v)
+
 class CriticResponse(BaseModel):
     """Modelo para la auditoría técnica de las respuestas."""
-    is_valid: bool = Field(description="Define si la respuesta cumple con los estándares de calidad")
+    is_valid: Union[bool, str] = Field(description="Define si la respuesta cumple con los estándares de calidad (true o false)")
     issues: List[str] = Field(description="Problemas detectados (ambigüedad, tono incorrecto, falta de datos)")
     suggestions: str = Field(description="Sugerencias de mejora para el especialista")
     score: float = Field(description="Calificación de calidad (0.0-1.0)")
+
+    @field_validator("is_valid", mode="before")
+    @classmethod
+    def coerce_bool(cls, v):
+        if isinstance(v, str):
+            return v.lower() in ("true", "1", "yes", "t")
+        return bool(v)
 
 class EvaluatorResponse(BaseModel):
     """Modelo para la evaluación automática de RAG en Langfuse."""
@@ -107,14 +121,22 @@ def get_llm(model_name: str = None, base_url: str = None):
 class MultiAgentSystem:
     def __init__(self):
         Config.validate()
-        
-        # Inicialización de modelos (Jerarquizada)
-        self.nano_llm = get_llm(Config.MODEL_NANO, Config.LM_STUDIO_NANO_URL)
-        self.powerful_llm = get_llm(Config.MODEL_POWERFUL, Config.LM_STUDIO_POWERFUL_URL)
-        
+
+        provider = Config.LLM_PROVIDER
+
+        # Para LM Studio, nano y powerful pueden apuntar a URLs distintas.
+        # Para proveedores cloud, la URL no aplica; solo se usa el model name.
+        if provider == "lm_studio":
+            self.nano_llm    = get_llm(Config.MODEL_NANO,    Config.LM_STUDIO_NANO_URL)
+            self.powerful_llm = get_llm(Config.MODEL_POWERFUL, Config.LM_STUDIO_POWERFUL_URL)
+        else:
+            self.nano_llm    = get_llm(Config.MODEL_NANO)
+            self.powerful_llm = get_llm(Config.MODEL_POWERFUL)
+
         # Mantener raw_llm por compatibilidad (apunta al potente)
-        self.raw_llm = self.powerful_llm 
-        
+        self.raw_llm = self.powerful_llm
+
+
         self.rag = RAGManager()
         
         # Inicialización de Langfuse

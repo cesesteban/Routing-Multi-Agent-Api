@@ -16,7 +16,7 @@ Utiliza el contexto proporcionado (Políticas, OWASP, Protocolos) para fundament
 ## RESPUESTA ESTRUCTURADA (JSON)
 Debes responder con el siguiente formato JSON:
 {{
-  "is_adversarial": boolean,
+  "is_adversarial": boolean (true o false, sin comillas),
   "risk_level": "BAJO" | "MEDIO" | "ALTO" | "CRÍTICO",
   "reason": "Explicación técnica del riesgo basada en el RAG",
   "policy_violated": "Nombre de la política o patrón detectado"

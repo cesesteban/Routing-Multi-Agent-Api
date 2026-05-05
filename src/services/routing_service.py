@@ -14,7 +14,7 @@ class RoutingService:
     def __init__(self, query_repo: QueryRepository):
         self.query_repo = query_repo
         self.system = MultiAgentSystem()
-        self.safety = SafetyGuard(llm=self.system.nano_llm, rag=self.system.rag)
+        self.safety = SafetyGuard(llm=self.system.powerful_llm, rag=self.system.rag)
         self.context_eng = ContextEngineer()
         self.tool_executor = ToolExecutor()
 
@@ -27,7 +27,7 @@ class RoutingService:
 
         # Crear traza raíz en Langfuse para toda la ejecución
         trace_id = None
-        if self.system.langfuse_client:
+        if self.system.langfuse_client and hasattr(self.system.langfuse_client, "trace"):
             try:
                 trace = self.system.langfuse_client.trace(
                     name="process_query",
@@ -142,7 +142,7 @@ class RoutingService:
             print(f"  [ToolExecutor ERROR] Tools fallaron silenciosamente: {e}")
 
         # Actualizar traza raíz con el output final
-        if self.system.langfuse_client and trace_id:
+        if self.system.langfuse_client and hasattr(self.system.langfuse_client, "trace") and trace_id:
             try:
                 self.system.langfuse_client.trace(
                     id=trace_id,

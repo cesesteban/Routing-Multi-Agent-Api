@@ -1,6 +1,5 @@
 import os
 import requests
-import json
 from typing import List
 from langchain_community.document_loaders import TextLoader, DirectoryLoader, PyPDFLoader
 import chromadb
@@ -14,6 +13,16 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from src.core.config import Config
 from src.core.constants import VALID_DEPARTMENTS, RAG_CHUNK_SIZE, RAG_CHUNK_OVERLAP, RAG_DEFAULT_K
 from src.core.exceptions import ProviderException
+
+try:
+    from langchain_google_vertexai import VertexAIEmbeddings
+except ImportError:
+    VertexAIEmbeddings = None
+
+try:
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+except ImportError:
+    HuggingFaceEmbeddings = None
 
 
 class LMStudioEmbeddings(Embeddings):
@@ -42,6 +51,8 @@ class LMStudioEmbeddings(Embeddings):
     def embed_query(self, text: str) -> list[float]:
         """Genera embedding para una única consulta."""
         return self.embed_documents([text])[0]
+
+
 
 
 class HybridRetriever:
@@ -93,37 +104,69 @@ class RAGManager:
         self.vectorstores = {}
         self.retrievers = {}  # Almacena HybridRetrievers por departamento
 
-    def _init_embeddings(self):
+    def _init_embeddings(self) -> None:
         if self.embeddings:
             return
 
-        provider = Config.LLM_PROVIDER
-        print(f"  [RAG] Inicializando embeddings ({provider})...")
+        provider = Config.EMBEDDINGS_PROVIDER
+        model    = Config.EMBEDDING_MODEL_NAME
+        print(f"  [RAG] Inicializando embeddings (provider={provider}, model={model})...")
 
         try:
             if provider == "openai":
-                self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+                self.embeddings = OpenAIEmbeddings(
+                    model=model,
+                    api_key=Config.OPENAI_API_KEY,
+                )
             elif provider in ("gemini", "google"):
-                self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+                self.embeddings = GoogleGenerativeAIEmbeddings(
+                    model=model,
+                    google_api_key=Config.GOOGLE_API_KEY,
+                )
+            elif provider == "vertexai":
+                if not VertexAIEmbeddings:
+                    raise ProviderException("langchain-google-vertexai no está instalado. Ejecuta: pip install langchain-google-vertexai")
+                self.embeddings = VertexAIEmbeddings(
+                    model_name=model,
+                    project=Config.GOOGLE_CLOUD_PROJECT,
+                    location=Config.GOOGLE_CLOUD_REGION,
+                )
             elif provider == "lm_studio":
                 self.embeddings = LMStudioEmbeddings(
-                    model=Config.MODEL_NAME,
-                    base_url=Config.LM_STUDIO_BASE_URL
+                    model=model,
+                    base_url=Config.EMBEDDINGS_BASE_URL,
+                )
+            elif provider == "huggingface":
+                if not HuggingFaceEmbeddings:
+                    raise ProviderException("langchain-community y sentence-transformers son necesarios para embeddings locales.")
+                print(f"  [RAG] Cargando modelo local {model} (esto puede tardar la primera vez)...")
+                self.embeddings = HuggingFaceEmbeddings(
+                    model_name=model,
+                    cache_folder="/app/persistent/hf_cache"
+                )
+            elif provider == "groq":
+                raise ProviderException(
+                    "Groq no soporta embeddings. "
+                    "Configura EMBEDDINGS_PROVIDER con otro provider (openai, gemini, vertexai, lm_studio)."
                 )
             else:
-                raise ProviderException(f"El proveedor '{provider}' no soporta embeddings nativos en esta configuración.")
+                raise ProviderException(f"El proveedor de embeddings '{provider}' no está soportado.")
+        except ProviderException:
+            raise
         except Exception as e:
-            if isinstance(e, ProviderException):
-                raise e
             print(f"  [RAG ERROR] Error crítico inicializando embeddings: {e}")
-            raise ProviderException(f"Error al conectar con el proveedor {provider}", detail=str(e))
+            raise ProviderException(f"Error al conectar con el proveedor de embeddings '{provider}'", detail=str(e))
+
+
 
     def _get_hybrid_retriever(self, department: str) -> HybridRetriever | None:
         """Crea o recupera un HybridRetriever para un departamento específico."""
         if department in self.retrievers:
             return self.retrievers[department]
 
-        db_path = os.path.join(Config.PERSISTENT_DIR, f"chroma_db_{department.lower()}")
+        # Limpiar el nombre del modelo para usarlo en el path (evitar caracteres ilegales)
+        model_safe = Config.EMBEDDING_MODEL_NAME.replace("/", "_").replace("\\", "_").replace(":", "_")
+        db_path = os.path.join(Config.PERSISTENT_DIR, f"chroma_db_{department.lower()}_{model_safe}")
         self._init_embeddings()
 
         paths = {

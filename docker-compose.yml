@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   multi-agent-routing-api:
     build: .
@@ -9,19 +7,14 @@ services:
     volumes:
       - .:/app
       - persistent_data:/app/persistent
+      # Monta las credenciales ADC del host dentro del contenedor (read-only)
+      - C:\Users\c-est\AppData\Roaming\gcloud\application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+    env_file:
+      - .env
     environment:
-      - LLM_PROVIDER=${LLM_PROVIDER:-lm_studio}
-      - MODEL_NAME=${MODEL_NAME:-local-model}
-      - MODEL_NANO=${MODEL_NANO:-gemma-3-1b}
-      - MODEL_POWERFUL=${MODEL_POWERFUL:-gemma-3-4b}
-      - LM_STUDIO_BASE_URL=${LM_STUDIO_BASE_URL:-http://host.docker.internal:1234/v1}
-      - LM_STUDIO_NANO_URL=${LM_STUDIO_NANO_URL:-http://host.docker.internal:1234/v1}
-      - LM_STUDIO_POWERFUL_URL=${LM_STUDIO_POWERFUL_URL:-http://host.docker.internal:1234/v1}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_HOST=${LANGFUSE_HOST:-https://cloud.langfuse.com}
+      # Override: el path en .env apunta al host; este apunta al path DENTRO del contenedor
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      # Database siempre usa el path interno del contenedor
       - DATABASE_URL=sqlite+aiosqlite:////app/persistent/multi_agent_system.db
     extra_hosts:
       - "host.docker.internal:host-gateway"

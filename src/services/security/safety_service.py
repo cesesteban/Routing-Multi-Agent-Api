@@ -1,15 +1,22 @@
 import os
 import json
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, Union
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from src.core.constants import FORBIDDEN_PATTERNS
 
 class SafetyDeepResponse(BaseModel):
-    is_adversarial: bool = Field(description="Si la consulta es maliciosa")
+    is_adversarial: Union[bool, str] = Field(description="Si la consulta es maliciosa (true o false)")
     risk_level: str = Field(description="Nivel de riesgo detectado")
     reason: str = Field(description="Explicación técnica")
     policy_violated: str = Field(description="Política violada")
+
+    @field_validator("is_adversarial", mode="before")
+    @classmethod
+    def coerce_bool(cls, v):
+        if isinstance(v, str):
+            return v.lower() in ("true", "1", "yes", "t")
+        return bool(v)
 
 class SafetyGuard:
     def __init__(self, llm=None, rag=None):

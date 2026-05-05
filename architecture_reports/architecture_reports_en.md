@@ -1,41 +1,57 @@
 # Multi-Agent RAG System Architecture Report (03-PI)
 
 ## 1. Vision of Architecture
-The system uses a **Retrieval-Augmented Routing with Autonomous Evaluation & Tracing Architecture**, designed to maximize precision through granular reasoning, external knowledge retrieval, and automated quality scoring.
+The system uses a **Retrieval-Augmented Routing with Hybrid Recovery (RRF), Dual-Layer Safety, and Autonomous Evaluation Architecture**, designed to maximize precision through granular reasoning and iterative quality validation.
 
-### Flow Diagram (Mermaid)
+### System Flow Diagram
 ```mermaid
 graph TD
     A[User: Query] --> B[Context Engineering]
-    B --> C[Safety Layer]
-    C --> D[Coordinator Agent + CoT]
-    D --> E{Specialist}
-    E --> F[Complaints]
-    E --> G[Finance]
-    E --> H[Tech Support]
-    E --> I[General]
-    F & G & H & I -- "Delivers Draft" --> J[Critic Agent / Auditor]
-    J -- "Rejects (Max 3 attempts + Feedback)" --> E
-    J -- "Approves" --> K[Enriched Payload]
-    K --> L[Metrics Observer]
+    B --> C{Safety L1 + L2}
+    C -->|Blocked| D[Safety Response]
+    C -->|Safe| E[Coordinator Agent + CoT]
+    E --> F{Specialist Agent}
+    F --> G[Hybrid RAG: Dense + BM25 → RRF]
+    G --> F
+    F --> H[Critic Agent / Auditor]
+    H -->|Rejects - max 3x| F
+    H -->|Approves| I[Evaluator Agent - RAG Score]
+    I --> J[SQLite Persistence]
+    J --> K[Deterministic ToolExecutor]
+    K --> L[EmailTool]
+    K --> M[SlackTool]
+    K --> N[JiraTool]
+    K --> O[CalendarTool]
+    K --> P[KBUpdaterTool]
+    J --> Q[JSON Response to Client]
 ```
 
-## 2. Advanced Prompting Techniques
--   **Granular Chain-of-Thought (CoT)**: Mandates each agent to document its logic in 4 specific steps (Analysis, Strategy, Risks, Solution), allowing for an immediate technical audit.
--   **True Iterative Feedback Loop (Audit Loop)**: The system implements a real recursive loop. When the **Critic Agent** detects a failure (e.g., placeholders like `[Name]`, lack of empathy, or incomplete data), it sends the response back to the **Specialist** with precise improvement instructions. This process repeats for a maximum of **3 attempts** to ensure the final response is suitable for the user.
--   **Structured Output (Pydantic)**: Extensive use of models to ensure that `avoid` (what not to say) and `why_it_works` (technical justification) are mandatory and consistent fields.
+## 2. Key Components
 
-## 3. Enriched Payload and Observability
-To facilitate development and monitoring, the system generates an output that includes:
-- **Context Hashing**: For traceability and integrity of the original input.
-- **Audit Trace**: A complete history of each Critic iteration, showing what was rejected and why.
-- **Attempts (`attempts`)**: A counter of the cycles performed to reach the final response.
-- **Telemetry**: Detailed latency and token usage broken down by stage (Coordination, Resolution, Audit).
+### A. Defense in Depth (Dual-Layer Safety)
+- **L1 (Patterns)**: Instant filtering of 25+ forbidden patterns (Prompt Injection, API key requests, etc.).
+- **L2 (Semantic)**: The Safety Agent analyzes the deep intent of the query using an LLM to detect sophisticated attacks that bypass text filters.
 
-## 4. System Strengths
--   **Intelligent Iteration**: The system is capable of self-criticism and automatic correction before delivering the final response.
--   **Defense in Depth**: Combines pattern-based security with a semantic audit by the Critic Agent.
--   **Full Transparency**: Developers have access to the exact internal reasoning and the refinement history.
+### B. Hybrid RAG with RRF
+Unlike traditional RAG, the system uses **Reciprocal Rank Fusion (RRF)** to combine:
+- **Dense Search (ChromaDB)**: Captures semantic meaning.
+- **Lexical Search (BM25)**: Ensures exact matches for technical terms and codes.
+
+### C. Audit & Iteration Loop
+The **Critic Agent** implements a real recursive loop. If it detects placeholders (`[Name]`), lack of empathy, or incomplete technical data, it returns the response to the **Specialist** with precise feedback. Up to **3 attempts** are allowed to ensure excellence.
+
+### D. Autonomous Evaluation & Observability
+- **Evaluator Agent**: Scores each final response based on `accuracy`, `relevance`, and `groundedness`.
+- **Traceability**: Full integration with **Langfuse** to monitor costs, stage-by-stage latency, and complete auditor traces.
+
+## 3. Deterministic ToolExecutor
+The execution of external actions is not left to LLM chance. The **ToolExecutor** triggers tools based on the structured metadata of the response:
+- **Email/Slack/Jira**: Activated by priority (HIGH/CRITICAL).
+- **Calendar**: Automatic scheduling if human supervision is required.
+- **KB Updater**: If the evaluation score is ≥ 0.7, the case is auto-indexed into the knowledge base.
+
+## 4. Stability and Testing
+The system features a suite of **75 E2E tests** that validate everything from safety to RAG fusion logic, ensuring each component works correctly before deployment.
 
 ## 5. Conclusion
-03-PI evolves from a simple router to a sophisticated multi-agent system that balances technical expertise with centralized and iterative quality control, similar to high-performance production architectures.
+03-PI evolves from a simple router to a sophisticated agent system that balances technical expertise with centralized, iterative quality control, guaranteeing safe, accurate, and actionable responses.
